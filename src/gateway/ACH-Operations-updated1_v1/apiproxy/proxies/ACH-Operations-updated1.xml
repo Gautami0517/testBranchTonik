@@ -1,0 +1,516 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<ProxyEndpoint name="ACH-Operations-updated1ProxyEndpoint">
+   <Description>ACH Operations updated1</Description>
+   <FaultRules>
+      <FaultRule name="SecurityFaultHandling">
+         <Step>
+            <Name>SF-SecurityFaultCallout</Name>
+         </Step>
+         <Condition>((oauthV2.VerifyAccessToken.failed equals true) or ((oauthV2.VerifyAPIKey.failed equals true) or (BasicAuthentication.DecodeBasicAuthentication.failed equals true) or (acl.AccessControl.failed equals true) or (oauthV2.failed equals true) or (authFlag equals false) or (isValidToken equals false)))</Condition>
+      </FaultRule>
+      <FaultRule name="TrafficManagementFaultHandling">
+         <Step>
+            <Name>SF-TrafficManagementFault</Name>
+         </Step>
+         <Condition>((ratelimit.SpikeArrest.failed equals true) or ((ratelimit.QuotaAtProductLevel.failed equals true)))</Condition>
+      </FaultRule>
+      <FaultRule name="ThreatFaultHandling">
+         <Step>
+            <Name>SF-ThreatFault</Name>
+         </Step>
+         <Condition>((jsonattack.cf-JSONThreatProtection.DoSAEvaluation.failed equals true) or (threatProtectionEvaluationStatus == "failed"))</Condition>
+      </FaultRule>
+   </FaultRules>
+   <DefaultFaultRule name="All">
+      <AlwaysEnforce>true</AlwaysEnforce>
+      <Step>
+         <Name>SF-DefaultFaultCallout</Name>
+      </Step>
+      <AlwaysEnforce>true</AlwaysEnforce>
+   </DefaultFaultRule>
+   <PreFlow name="PreFlow">
+      <Request>
+         <Step>
+            <Name>cf-set-log-variables</Name>
+         </Step>
+         <Step>
+            <Condition>(log.proxyVerb != "OPTIONS")</Condition>
+            <Name>cf-Generate-Message-Correlation-ID</Name>
+         </Step>
+         <Step>
+            <Name>SF-Proxy-Current-Flow-Name</Name>
+         </Step>
+         <Step>
+            <Name>SF-Log-Preflow-Request</Name>
+         </Step>
+         <Step>
+            <Condition>(request.header.Authorization equals null) and (log.proxyVerb != "OPTIONS")</Condition>
+            <Name>cf-data-validation-Authorization</Name>
+         </Step>
+         <Step>
+            <Condition>(log.proxyVerb != "OPTIONS")</Condition>
+            <Name>SF-SpikeArrestCallout-Environment</Name>
+         </Step>
+         <Step>
+            <Condition>(log.proxyVerb != "OPTIONS") and (log.proxyVerb != "GET") and (request.header.Content-Length != 0)</Condition>
+            <Name>SF-JSONThreatValidation</Name>
+         </Step>
+         <Step>
+            <Condition>(log.proxyVerb != "OPTIONS")</Condition>
+            <Name>SF-ThreatProtection</Name>
+         </Step>
+         <Step>
+            <Condition>(log.proxyVerb != "OPTIONS")</Condition>
+            <Name>SF-Validate-Access-Token</Name>
+         </Step>
+         <Step>
+            <Condition>(log.proxyVerb != "OPTIONS")</Condition>
+            <Name>SF-QuotaAtProductLevel</Name>
+         </Step>
+      </Request>
+      <Response>
+      </Response>
+   </PreFlow>
+   <Flows>
+      <Flow name="WrongAccept">
+         <Description/>
+         <Request>
+            <Step>
+               <Name>SF-Proxy-Current-Flow-Name</Name>
+            </Step>
+            <Step>
+               <Name>cf-Fault-Unsupported-AcceptType</Name>
+            </Step>
+         </Request>
+         <Response/>
+         <Condition>(log.proxyVerb != "OPTIONS") and (log.proxyVerb != "GET") and (!(log.Accept JavaRegex "(text\/xml)(;.*)|(.*;)(text\/xml)(;.*)|text\/xml|(.*;)(text\/xml)|(application\/xml)(;.*)|(.*;)(application\/xml)(;.*)|application\/xml|(.*;)(application\/xml)|(application\/json)(;.*)|(.*;)(application\/json)(;.*)|application\/json|(.*;)(application\/json)"))</Condition>
+      </Flow>
+      <Flow name="WrongContentType">
+         <Description/>
+         <Request>
+            <Step>
+               <Name>SF-Proxy-Current-Flow-Name</Name>
+            </Step>
+            <Step>
+               <Name>cf-Fault-Unsupported-ContentType</Name>
+            </Step>
+         </Request>
+         <Response/>
+         <Condition>(log.proxyVerb != "OPTIONS") and (log.proxyVerb != "GET") and ((!(request.content = "")) and (!(request.content is null)) and !(log.Content-Type JavaRegex "(text\/xml)(;.*)|(.*;)(text\/xml)(;.*)|text\/xml|(.*;)(text\/xml)|(application\/xml)(;.*)|(.*;)(application\/xml)(;.*)|application\/xml|(.*;)(application\/xml)|(application\/json)(;.*)|(.*;)(application\/json)(;.*)|application\/json|(.*;)(application\/json)"))</Condition>
+      </Flow>
+      <Flow name="Update">
+         <Request>
+            <Step>
+               <Name>SF-Proxy-Current-Flow-Name</Name>
+            </Step>
+            <Step>
+               <Condition>(request.header.x-tenant equals null)</Condition>
+               <Name>cf-data-validation-header</Name>
+            </Step>
+            <Step>
+               <Condition>(request.header.Content-Length equals 0) and (request.verb!= "GET") and (request.verb!= "DELETE")</Condition>
+               <Name>cf-data-validation-payload</Name>
+            </Step>
+            <Step>
+               <Name>cf-Assign-Routing-Variables-Update</Name>
+            </Step>
+         </Request>
+         <Response>
+         </Response>
+         <Condition>(proxy.pathsuffix MatchesPath &quot;/ACHOperations/{achoperationsid}/Update&quot;) and (request.verb= &quot;PUT&quot;)</Condition>
+      </Flow>
+      <Flow name="Retrieve">
+         <Request>
+            <Step>
+               <Name>SF-Proxy-Current-Flow-Name</Name>
+            </Step>
+            <Step>
+               <Condition>(request.header.x-tenant equals null)</Condition>
+               <Name>cf-data-validation-header</Name>
+            </Step>
+            <Step>
+               <Condition>(request.header.Content-Length equals 0) and (request.verb!= "GET") and (request.verb!= "DELETE")</Condition>
+               <Name>cf-data-validation-payload</Name>
+            </Step>
+            <Step>
+               <Name>cf-Assign-Routing-Variables-Retrieve</Name>
+            </Step>
+         </Request>
+         <Response>
+         </Response>
+         <Condition>(proxy.pathsuffix MatchesPath &quot;/ACHOperations/{achoperationsid}/Retrieve&quot;) and (request.verb= &quot;GET&quot;)</Condition>
+      </Flow>
+      <Flow name="InitiateInboundACH">
+         <Request>
+            <Step>
+               <Name>SF-Proxy-Current-Flow-Name</Name>
+            </Step>
+            <Step>
+               <Condition>(request.header.x-tenant equals null)</Condition>
+               <Name>cf-data-validation-header</Name>
+            </Step>
+            <Step>
+               <Condition>(request.header.Content-Length equals 0) and (request.verb!= "GET") and (request.verb!= "DELETE")</Condition>
+               <Name>cf-data-validation-payload</Name>
+            </Step>
+            <Step>
+               <Name>cf-Assign-Routing-Variables-InitiateInboundACH</Name>
+            </Step>
+         </Request>
+         <Response>
+         </Response>
+         <Condition>(proxy.pathsuffix MatchesPath &quot;/ACHOperations/{achoperationsid}/InboundACH/{inboundachid}/Initiate&quot;) and (request.verb= &quot;POST&quot;)</Condition>
+      </Flow>
+      <Flow name="UpdateInboundACH">
+         <Request>
+            <Step>
+               <Name>SF-Proxy-Current-Flow-Name</Name>
+            </Step>
+            <Step>
+               <Condition>(request.header.x-tenant equals null)</Condition>
+               <Name>cf-data-validation-header</Name>
+            </Step>
+            <Step>
+               <Condition>(request.header.Content-Length equals 0) and (request.verb!= "GET") and (request.verb!= "DELETE")</Condition>
+               <Name>cf-data-validation-payload</Name>
+            </Step>
+            <Step>
+               <Name>cf-Assign-Routing-Variables-UpdateInboundACH</Name>
+            </Step>
+         </Request>
+         <Response>
+         </Response>
+         <Condition>(proxy.pathsuffix MatchesPath &quot;/ACHOperations/{achoperationsid}/InboundACH/{inboundachid}/Update&quot;) and (request.verb= &quot;PUT&quot;)</Condition>
+      </Flow>
+      <Flow name="RetrieveInboundACH">
+         <Request>
+            <Step>
+               <Name>SF-Proxy-Current-Flow-Name</Name>
+            </Step>
+            <Step>
+               <Condition>(request.header.x-tenant equals null)</Condition>
+               <Name>cf-data-validation-header</Name>
+            </Step>
+            <Step>
+               <Condition>(request.header.Content-Length equals 0) and (request.verb!= "GET") and (request.verb!= "DELETE")</Condition>
+               <Name>cf-data-validation-payload</Name>
+            </Step>
+            <Step>
+               <Name>cf-Assign-Routing-Variables-RetrieveInboundACH</Name>
+            </Step>
+         </Request>
+         <Response>
+         </Response>
+         <Condition>(proxy.pathsuffix MatchesPath &quot;/ACHOperations/{achoperationsid}/InboundACH/{inboundachid}/Retrieve&quot;) and (request.verb= &quot;GET&quot;)</Condition>
+      </Flow>
+      <Flow name="InitiateOutboundACH">
+         <Request>
+            <Step>
+               <Name>SF-Proxy-Current-Flow-Name</Name>
+            </Step>
+            <Step>
+               <Condition>(request.header.x-tenant equals null)</Condition>
+               <Name>cf-data-validation-header</Name>
+            </Step>
+            <Step>
+               <Condition>(request.header.Content-Length equals 0) and (request.verb!= "GET") and (request.verb!= "DELETE")</Condition>
+               <Name>cf-data-validation-payload</Name>
+            </Step>
+            <Step>
+               <Name>cf-Assign-Routing-Variables-InitiateOutboundACH</Name>
+            </Step>
+         </Request>
+         <Response>
+         </Response>
+         <Condition>(proxy.pathsuffix MatchesPath &quot;/ACHOperations/{achoperationsid}/OutboundACH/{outboundachid}/Initiate&quot;) and (request.verb= &quot;POST&quot;)</Condition>
+      </Flow>
+      <Flow name="UpdateOutboundACH">
+         <Request>
+            <Step>
+               <Name>SF-Proxy-Current-Flow-Name</Name>
+            </Step>
+            <Step>
+               <Condition>(request.header.x-tenant equals null)</Condition>
+               <Name>cf-data-validation-header</Name>
+            </Step>
+            <Step>
+               <Condition>(request.header.Content-Length equals 0) and (request.verb!= "GET") and (request.verb!= "DELETE")</Condition>
+               <Name>cf-data-validation-payload</Name>
+            </Step>
+            <Step>
+               <Name>cf-Assign-Routing-Variables-UpdateOutboundACH</Name>
+            </Step>
+         </Request>
+         <Response>
+         </Response>
+         <Condition>(proxy.pathsuffix MatchesPath &quot;/ACHOperations/{achoperationsid}/OutboundACH/{outboundachid}/Update&quot;) and (request.verb= &quot;PUT&quot;)</Condition>
+      </Flow>
+      <Flow name="RetrieveOutboundACH">
+         <Request>
+            <Step>
+               <Name>SF-Proxy-Current-Flow-Name</Name>
+            </Step>
+            <Step>
+               <Condition>(request.header.x-tenant equals null)</Condition>
+               <Name>cf-data-validation-header</Name>
+            </Step>
+            <Step>
+               <Condition>(request.header.Content-Length equals 0) and (request.verb!= "GET") and (request.verb!= "DELETE")</Condition>
+               <Name>cf-data-validation-payload</Name>
+            </Step>
+            <Step>
+               <Name>cf-Assign-Routing-Variables-RetrieveOutboundACH</Name>
+            </Step>
+         </Request>
+         <Response>
+         </Response>
+         <Condition>(proxy.pathsuffix MatchesPath &quot;/ACHOperations/{achoperationsid}/OutboundACH/{outboundachid}/Retrieve&quot;) and (request.verb= &quot;GET&quot;)</Condition>
+      </Flow>
+      <Flow name="InitiateWarehousing">
+         <Request>
+            <Step>
+               <Name>SF-Proxy-Current-Flow-Name</Name>
+            </Step>
+            <Step>
+               <Condition>(request.header.x-tenant equals null)</Condition>
+               <Name>cf-data-validation-header</Name>
+            </Step>
+            <Step>
+               <Condition>(request.header.Content-Length equals 0) and (request.verb!= "GET") and (request.verb!= "DELETE")</Condition>
+               <Name>cf-data-validation-payload</Name>
+            </Step>
+            <Step>
+               <Name>cf-Assign-Routing-Variables-InitiateWarehousing</Name>
+            </Step>
+         </Request>
+         <Response>
+         </Response>
+         <Condition>(proxy.pathsuffix MatchesPath &quot;/ACHOperations/{achoperationsid}/Warehousing/{warehousingid}/Initiate&quot;) and (request.verb= &quot;POST&quot;)</Condition>
+      </Flow>
+      <Flow name="UpdateWarehousing">
+         <Request>
+            <Step>
+               <Name>SF-Proxy-Current-Flow-Name</Name>
+            </Step>
+            <Step>
+               <Condition>(request.header.x-tenant equals null)</Condition>
+               <Name>cf-data-validation-header</Name>
+            </Step>
+            <Step>
+               <Condition>(request.header.Content-Length equals 0) and (request.verb!= "GET") and (request.verb!= "DELETE")</Condition>
+               <Name>cf-data-validation-payload</Name>
+            </Step>
+            <Step>
+               <Name>cf-Assign-Routing-Variables-UpdateWarehousing</Name>
+            </Step>
+         </Request>
+         <Response>
+         </Response>
+         <Condition>(proxy.pathsuffix MatchesPath &quot;/ACHOperations/{achoperationsid}/Warehousing/{warehousingid}/Update&quot;) and (request.verb= &quot;PUT&quot;)</Condition>
+      </Flow>
+      <Flow name="RetrieveWarehousing">
+         <Request>
+            <Step>
+               <Name>SF-Proxy-Current-Flow-Name</Name>
+            </Step>
+            <Step>
+               <Condition>(request.header.x-tenant equals null)</Condition>
+               <Name>cf-data-validation-header</Name>
+            </Step>
+            <Step>
+               <Condition>(request.header.Content-Length equals 0) and (request.verb!= "GET") and (request.verb!= "DELETE")</Condition>
+               <Name>cf-data-validation-payload</Name>
+            </Step>
+            <Step>
+               <Name>cf-Assign-Routing-Variables-RetrieveWarehousing</Name>
+            </Step>
+         </Request>
+         <Response>
+         </Response>
+         <Condition>(proxy.pathsuffix MatchesPath &quot;/ACHOperations/{achoperationsid}/Warehousing/{warehousingid}/Retrieve&quot;) and (request.verb= &quot;GET&quot;)</Condition>
+      </Flow>
+      <Flow name="InitiateClearingandSettlement">
+         <Request>
+            <Step>
+               <Name>SF-Proxy-Current-Flow-Name</Name>
+            </Step>
+            <Step>
+               <Condition>(request.header.x-tenant equals null)</Condition>
+               <Name>cf-data-validation-header</Name>
+            </Step>
+            <Step>
+               <Condition>(request.header.Content-Length equals 0) and (request.verb!= "GET") and (request.verb!= "DELETE")</Condition>
+               <Name>cf-data-validation-payload</Name>
+            </Step>
+            <Step>
+               <Name>cf-Assign-Routing-Variables-InitiateClearingandSettlement</Name>
+            </Step>
+         </Request>
+         <Response>
+         </Response>
+         <Condition>(proxy.pathsuffix MatchesPath &quot;/ACHOperations/{achoperationsid}/ClearingandSettlement/{clearingandsettlementid}/Initiate&quot;) and (request.verb= &quot;POST&quot;)</Condition>
+      </Flow>
+      <Flow name="UpdateClearingandSettlement">
+         <Request>
+            <Step>
+               <Name>SF-Proxy-Current-Flow-Name</Name>
+            </Step>
+            <Step>
+               <Condition>(request.header.x-tenant equals null)</Condition>
+               <Name>cf-data-validation-header</Name>
+            </Step>
+            <Step>
+               <Condition>(request.header.Content-Length equals 0) and (request.verb!= "GET") and (request.verb!= "DELETE")</Condition>
+               <Name>cf-data-validation-payload</Name>
+            </Step>
+            <Step>
+               <Name>cf-Assign-Routing-Variables-UpdateClearingandSettlement</Name>
+            </Step>
+         </Request>
+         <Response>
+         </Response>
+         <Condition>(proxy.pathsuffix MatchesPath &quot;/ACHOperations/{achoperationsid}/ClearingandSettlement/{clearingandsettlementid}/Update&quot;) and (request.verb= &quot;PUT&quot;)</Condition>
+      </Flow>
+      <Flow name="RetrieveClearingandSettlement">
+         <Request>
+            <Step>
+               <Name>SF-Proxy-Current-Flow-Name</Name>
+            </Step>
+            <Step>
+               <Condition>(request.header.x-tenant equals null)</Condition>
+               <Name>cf-data-validation-header</Name>
+            </Step>
+            <Step>
+               <Condition>(request.header.Content-Length equals 0) and (request.verb!= "GET") and (request.verb!= "DELETE")</Condition>
+               <Name>cf-data-validation-payload</Name>
+            </Step>
+            <Step>
+               <Name>cf-Assign-Routing-Variables-RetrieveClearingandSettlement</Name>
+            </Step>
+         </Request>
+         <Response>
+         </Response>
+         <Condition>(proxy.pathsuffix MatchesPath &quot;/ACHOperations/{achoperationsid}/ClearingandSettlement/{clearingandsettlementid}/Retrieve&quot;) and (request.verb= &quot;GET&quot;)</Condition>
+      </Flow>
+      <Flow name="InitiateReconciliation">
+         <Request>
+            <Step>
+               <Name>SF-Proxy-Current-Flow-Name</Name>
+            </Step>
+            <Step>
+               <Condition>(request.header.x-tenant equals null)</Condition>
+               <Name>cf-data-validation-header</Name>
+            </Step>
+            <Step>
+               <Condition>(request.header.Content-Length equals 0) and (request.verb!= "GET") and (request.verb!= "DELETE")</Condition>
+               <Name>cf-data-validation-payload</Name>
+            </Step>
+            <Step>
+               <Name>cf-Assign-Routing-Variables-InitiateReconciliation</Name>
+            </Step>
+         </Request>
+         <Response>
+         </Response>
+         <Condition>(proxy.pathsuffix MatchesPath &quot;/ACHOperations/{achoperationsid}/Reconciliation/{reconciliationid}/Initiate&quot;) and (request.verb= &quot;POST&quot;)</Condition>
+      </Flow>
+      <Flow name="UpdateReconciliation">
+         <Request>
+            <Step>
+               <Name>SF-Proxy-Current-Flow-Name</Name>
+            </Step>
+            <Step>
+               <Condition>(request.header.x-tenant equals null)</Condition>
+               <Name>cf-data-validation-header</Name>
+            </Step>
+            <Step>
+               <Condition>(request.header.Content-Length equals 0) and (request.verb!= "GET") and (request.verb!= "DELETE")</Condition>
+               <Name>cf-data-validation-payload</Name>
+            </Step>
+            <Step>
+               <Name>cf-Assign-Routing-Variables-UpdateReconciliation</Name>
+            </Step>
+         </Request>
+         <Response>
+         </Response>
+         <Condition>(proxy.pathsuffix MatchesPath &quot;/ACHOperations/{achoperationsid}/Reconciliation/{reconciliationid}/Update&quot;) and (request.verb= &quot;PUT&quot;)</Condition>
+      </Flow>
+      <Flow name="RetrieveReconciliation">
+         <Request>
+            <Step>
+               <Name>SF-Proxy-Current-Flow-Name</Name>
+            </Step>
+            <Step>
+               <Condition>(request.header.x-tenant equals null)</Condition>
+               <Name>cf-data-validation-header</Name>
+            </Step>
+            <Step>
+               <Condition>(request.header.Content-Length equals 0) and (request.verb!= "GET") and (request.verb!= "DELETE")</Condition>
+               <Name>cf-data-validation-payload</Name>
+            </Step>
+            <Step>
+               <Name>cf-Assign-Routing-Variables-RetrieveReconciliation</Name>
+            </Step>
+         </Request>
+         <Response>
+         </Response>
+         <Condition>(proxy.pathsuffix MatchesPath &quot;/ACHOperations/{achoperationsid}/Reconciliation/{reconciliationid}/Retrieve&quot;) and (request.verb= &quot;GET&quot;)</Condition>
+      </Flow>
+      <!-- CORS Preflight flow-->
+      <Flow name="CORS">
+         <Description/>
+         <Request>
+            <Step>
+               <Name>SF-Proxy-Current-Flow-Name</Name>
+            </Step>
+            <Step>
+               <Name>cf-getCORSDomainList</Name>
+            </Step>
+         </Request>
+         <Response>
+            <Step>
+               <Name>cf-CORSValidation</Name>
+            </Step>
+         </Response>
+         <Condition>(log.proxyVerb == "OPTIONS") and (log.origin != null)</Condition>
+      </Flow>
+      <Flow name="unknown-resource">
+         <Request>
+            <Step>
+               <Name>SF-Proxy-Current-Flow-Name</Name>
+            </Step>
+            <Step>
+               <Name>cf-Unknown-Resource</Name>
+            </Step>
+         </Request>
+         <Response/>
+      </Flow>
+   </Flows>
+   <PostFlow name="PostFlow">
+      <Request></Request>
+      <Response>
+         <Step>
+            <Name>SF-Log-Collector</Name>
+         </Step>
+         <Step>
+            <Name>SF-Compliance-Callout</Name>
+         </Step>
+      </Response>
+   </PostFlow>
+   <PostClientFlow>
+        <Request/>
+        <Response>
+        </Response>
+    </PostClientFlow>
+   <HTTPProxyConnection>
+      <BasePath>/BIAN-3/BIAN/ACHOperations/11.0.0</BasePath>
+      <VirtualHost>default</VirtualHost>
+      <VirtualHost>secure</VirtualHost>
+   </HTTPProxyConnection>
+   <RouteRule name="NoRoute">
+      <Condition>(request.verb == "OPTIONS")</Condition>
+   </RouteRule>
+   <RouteRule name="ACH-Operations-updated1">
+      <Condition>(target.route.service = &quot;ACH-Operations-updated1&quot;)</Condition>
+      <TargetEndpoint>ACH-Operations-updated1</TargetEndpoint>
+   </RouteRule>
+</ProxyEndpoint>

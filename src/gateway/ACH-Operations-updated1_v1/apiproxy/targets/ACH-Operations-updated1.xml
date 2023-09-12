@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<TargetEndpoint name="ACH-Operations-updated1">
+    <Description>ACH Operations updated1</Description>
+	<FaultRules>
+	</FaultRules>
+	<DefaultFaultRule>
+            <Step>
+                <Name>SF-PostflowResponseTargetLogAggregator</Name>
+            </Step>
+    	<AlwaysEnforce>true</AlwaysEnforce>
+	</DefaultFaultRule>
+	<PreFlow name="PreFlow">
+        <Request>
+            <Step>
+                <Name>SF-PreflowRequestTargetLogAggregator</Name>
+            </Step>
+            <Step>
+                <Name>cf-Remove-Proxy-Auth-Header</Name>
+            </Step>
+        </Request>
+        <Response/>
+    </PreFlow>
+	<Flows>
+        <Flow name="Update">
+        	<Condition>(targetOperation = &quot;Update&quot;)</Condition>
+			<Request>
+			</Request>   
+			<Response>
+			</Response>
+        </Flow>
+        <Flow name="Retrieve">
+        	<Condition>(targetOperation = &quot;Retrieve&quot;)</Condition>
+			<Request>
+			</Request>   
+			<Response>
+			</Response>
+        </Flow>
+        <Flow name="InitiateInboundACH">
+        	<Condition>(targetOperation = &quot;InitiateInboundACH&quot;)</Condition>
+			<Request>
+			</Request>   
+			<Response>
+			</Response>
+        </Flow>
+        <Flow name="UpdateInboundACH">
+        	<Condition>(targetOperation = &quot;UpdateInboundACH&quot;)</Condition>
+			<Request>
+			</Request>   
+			<Response>
+			</Response>
+        </Flow>
+        <Flow name="RetrieveInboundACH">
+        	<Condition>(targetOperation = &quot;RetrieveInboundACH&quot;)</Condition>
+			<Request>
+			</Request>   
+			<Response>
+			</Response>
+        </Flow>
+        <Flow name="InitiateOutboundACH">
+        	<Condition>(targetOperation = &quot;InitiateOutboundACH&quot;)</Condition>
+			<Request>
+			</Request>   
+			<Response>
+			</Response>
+        </Flow>
+        <Flow name="UpdateOutboundACH">
+        	<Condition>(targetOperation = &quot;UpdateOutboundACH&quot;)</Condition>
+			<Request>
+			</Request>   
+			<Response>
+			</Response>
+        </Flow>
+        <Flow name="RetrieveOutboundACH">
+        	<Condition>(targetOperation = &quot;RetrieveOutboundACH&quot;)</Condition>
+			<Request>
+			</Request>   
+			<Response>
+			</Response>
+        </Flow>
+        <Flow name="InitiateWarehousing">
+        	<Condition>(targetOperation = &quot;InitiateWarehousing&quot;)</Condition>
+			<Request>
+			</Request>   
+			<Response>
+			</Response>
+        </Flow>
+        <Flow name="UpdateWarehousing">
+        	<Condition>(targetOperation = &quot;UpdateWarehousing&quot;)</Condition>
+			<Request>
+			</Request>   
+			<Response>
+			</Response>
+        </Flow>
+        <Flow name="RetrieveWarehousing">
+        	<Condition>(targetOperation = &quot;RetrieveWarehousing&quot;)</Condition>
+			<Request>
+			</Request>   
+			<Response>
+			</Response>
+        </Flow>
+        <Flow name="InitiateClearingandSettlement">
+        	<Condition>(targetOperation = &quot;InitiateClearingandSettlement&quot;)</Condition>
+			<Request>
+			</Request>   
+			<Response>
+			</Response>
+        </Flow>
+        <Flow name="UpdateClearingandSettlement">
+        	<Condition>(targetOperation = &quot;UpdateClearingandSettlement&quot;)</Condition>
+			<Request>
+			</Request>   
+			<Response>
+			</Response>
+        </Flow>
+        <Flow name="RetrieveClearingandSettlement">
+        	<Condition>(targetOperation = &quot;RetrieveClearingandSettlement&quot;)</Condition>
+			<Request>
+			</Request>   
+			<Response>
+			</Response>
+        </Flow>
+        <Flow name="InitiateReconciliation">
+        	<Condition>(targetOperation = &quot;InitiateReconciliation&quot;)</Condition>
+			<Request>
+			</Request>   
+			<Response>
+			</Response>
+        </Flow>
+        <Flow name="UpdateReconciliation">
+        	<Condition>(targetOperation = &quot;UpdateReconciliation&quot;)</Condition>
+			<Request>
+			</Request>   
+			<Response>
+			</Response>
+        </Flow>
+        <Flow name="RetrieveReconciliation">
+        	<Condition>(targetOperation = &quot;RetrieveReconciliation&quot;)</Condition>
+			<Request>
+			</Request>   
+			<Response>
+			</Response>
+        </Flow>
+	</Flows>
+    <PostFlow name="PostFlow">
+        <Request>
+            <Step>
+                <Name>SF-PostflowRequestTargetLogAggregator</Name>
+            </Step>
+        </Request>
+        <Response>
+            <Step>
+                <Name>SF-PostflowResponseTargetLogAggregator</Name>
+            </Step>
+        </Response>
+    </PostFlow>
+    <HTTPTargetConnection>
+    	<LoadBalancer>
+            <Server name="ACH-Operations-updated1">
+                <IsEnabled>true</IsEnabled>
+            </Server>
+        </LoadBalancer>
+        <Path>/BIAN-3/BIAN/ACHOperations/11.0.0</Path>
+    </HTTPTargetConnection>
+</TargetEndpoint>
